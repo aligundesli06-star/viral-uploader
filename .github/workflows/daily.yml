@@ -1,0 +1,26 @@
+name: Daily Viral Uploader
+
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Install yt-dlp and ffmpeg
+        run: |
+          pip install yt-dlp
+          sudo apt-get install -y ffmpeg
+      - name: Run downloader and uploader
+        env:
+          YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+        run: python3 viral_downloader.py && python3 youtube_uploader.py
