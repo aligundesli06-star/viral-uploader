@@ -1,39 +1,41 @@
 import subprocess
-import requests
 import os
-import time
+import json
 
 folder = "/tmp/viral_videos" if os.environ.get("YOUTUBE_CREDENTIALS") else os.path.expanduser("~/viral_videos")
 os.makedirs(folder, exist_ok=True)
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json",
-}
+# Doğrudan bilinen viral video URL'leri yerine yt-dlp ile YouTube trending çek
+print("YouTube trending videoları çekiliyor...")
+result = subprocess.run(
+    ["yt-dlp", "--flat-playlist", "-j", "--playlist-end", "5",
+     "https://www.youtube.com/feed/trending?bp=4gINGgt5dG1hX2NoYXJ0cw%3D%3D"],
+    capture_output=True, text=True
+)
 
-session = requests.Session()
-session.headers.update(headers)
+videos = []
+for line in result.stdout.strip().split('\n'):
+    if line:
+        try:
+            video = json.loads(line)
+            videos.append({
+                'url': f"https://www.youtube.com/watch?v={video['id']}",
+                'title': video.get('title', 'video')[:50]
+            })
+        except:
+            pass
 
-# Önce ana sayfayı ziyaret et
-session.get("https://www.reddit.com/", timeout=10)
-time.sleep(2)
+print(f"{len(videos)} video bulundu")
 
-url = "https://www.reddit.com/r/funny/top.json?limit=5&t=day"
-response = session.get(url, timeout=10)
-print("Status:", response.status_code)
-print("Response:", response.text[:200])
-
-posts = response.json()["data"]["children"]
-
-for post in posts:
-    data = post["data"]
-    video_url = data.get("url", "")
-    title = data.get("title", "video")[:50]
-    title = "".join(c for c in title if c.isalnum() or c == " ").strip()
-
-    if any(x in video_url for x in ["v.redd.it", "youtube.com", "youtu.be"]):
-        print(f"İndiriliyor: {title}")
-        output_path = os.path.join(folder, f"{title}.%(ext)s")
-        subprocess.run(["yt-dlp", "-o", output_path, "--max-filesize", "50m", video_url])
+for video in videos:
+    title = "".join(c for c in video['title'] if c.isalnum() or c == " ").strip()
+    print(f"İndiriliyor: {title}")
+    output_path = os.path.join(folder, f"{title}.%(ext)s")
+    subprocess.run([
+        "yt-dlp", "-o", output_path,
+        "--max-filesize", "50m",
+        "-f", "mp4",
+        video['url']
+    ])
 
 print("Tamamlandı!")
