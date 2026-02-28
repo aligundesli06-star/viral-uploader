@@ -5,11 +5,10 @@ import json
 folder = "/tmp/viral_videos" if os.environ.get("YOUTUBE_CREDENTIALS") else os.path.expanduser("~/viral_videos")
 os.makedirs(folder, exist_ok=True)
 
-# Doğrudan bilinen viral video URL'leri yerine yt-dlp ile YouTube trending çek
-print("YouTube trending videoları çekiliyor...")
+print("Creative Commons videolar çekiliyor...")
 result = subprocess.run(
     ["yt-dlp", "--flat-playlist", "-j", "--playlist-end", "5",
-     "https://www.youtube.com/feed/trending?bp=4gINGgt5dG1hX2NoYXJ0cw%3D%3D"],
+     "https://www.youtube.com/results?search_query=funny+compilation&sp=EgIwAQ%253D%253D"],
     capture_output=True, text=True
 )
 
@@ -34,6 +33,7 @@ for video in videos:
     subprocess.run([
         "yt-dlp", "-o", output_path,
         "--max-filesize", "50m",
+        "--match-filter", "license='Creative Commons Attribution license (reuse allowed)'",
         "-f", "mp4",
         video['url']
     ])
