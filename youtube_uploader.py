@@ -1,24 +1,25 @@
 import os
+import json
+import pickle
 import google.oauth2.credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
-import pickle
-
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-CLIENT_SECRETS = os.path.expanduser("~/client_secrets.json")
-TOKEN_FILE = os.path.expanduser("~/youtube_token.pickle")
 
 def get_youtube_service():
-    creds = None
-    if os.path.exists(TOKEN_FILE):
-        with open(TOKEN_FILE, "rb") as f:
+    creds_json = os.environ.get("YOUTUBE_CREDENTIALS")
+    if creds_json:
+        creds_data = json.loads(creds_json)
+        creds = google.oauth2.credentials.Credentials(
+            token=creds_data["token"],
+            refresh_token=creds_data["refresh_token"],
+            token_uri=creds_data["token_uri"],
+            client_id=creds_data["client_id"],
+            client_secret=creds_data["client_secret"],
+            scopes=creds_data["scopes"]
+        )
+    else:
+        with open(os.path.expanduser("~/youtube_token.pickle"), "rb") as f:
             creds = pickle.load(f)
-    if not creds:
-        flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS, SCOPES)
-        creds = flow.run_local_server(port=0)
-        with open(TOKEN_FILE, "wb") as f:
-            pickle.dump(creds, f)
     return build("youtube", "v3", credentials=creds)
 
 def upload_video(youtube, file_path, title):
@@ -39,13 +40,14 @@ def upload_video(youtube, file_path, title):
     print(f"Yüklendi: {title} - https://youtube.com/watch?v={response['id']}")
 
 youtube = get_youtube_service()
-video_folder = os.path.expanduser("~/viral_videos")
+video_folder = os.path.expanduser("~/viral_videos") if not os.environ.get("YOUTUBE_CREDENTIALS") else "/tmp/viral_videos"
 
-for file in os.listdir(video_folder):
-    if file.endswith(".mp4"):
-        file_path = os.path.join(video_folder, file)
-        title = os.path.splitext(file)[0]
-        print(f"Yükleniyor: {title}")
-        upload_video(youtube, file_path, title)
+if os.path.exists(video_folder):
+    for file in os.listdir(video_folder):
+        if file.endswith(".mp4"):
+            file_path = os.path.join(video_folder, file)
+            title = os.path.splitext(file)[0]
+            print(f"Yükleniyor: {title}")
+            upload_video(youtube, file_path, title)
 
 print("Tüm videolar yüklendi!")
