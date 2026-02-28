@@ -1,13 +1,27 @@
 import subprocess
 import requests
 import os
+import time
 
 folder = "/tmp/viral_videos" if os.environ.get("YOUTUBE_CREDENTIALS") else os.path.expanduser("~/viral_videos")
 os.makedirs(folder, exist_ok=True)
 
+headers = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json",
+}
+
+session = requests.Session()
+session.headers.update(headers)
+
+# Önce ana sayfayı ziyaret et
+session.get("https://www.reddit.com/", timeout=10)
+time.sleep(2)
+
 url = "https://www.reddit.com/r/funny/top.json?limit=5&t=day"
-headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
-response = requests.get(url, headers=headers, allow_redirects=True)
+response = session.get(url, timeout=10)
+print("Status:", response.status_code)
+print("Response:", response.text[:200])
 
 posts = response.json()["data"]["children"]
 
