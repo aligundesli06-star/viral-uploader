@@ -1,4 +1,4 @@
-name: Daily Viral Uploader
+name: Upload Viral Shorts
 
 on:
   schedule:
@@ -6,21 +6,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  run:
+  upload:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.10'
+
       - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Install yt-dlp and ffmpeg
-        run: |
-          pip install yt-dlp
-          sudo apt-get install -y ffmpeg
-      - name: Run downloader and uploader
+        run: pip install requests google-api-python-client google-auth-oauthlib
+
+      - name: Run uploader
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: python3 viral_downloader.py && python3 youtube_uploader.py
