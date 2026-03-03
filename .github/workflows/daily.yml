@@ -19,8 +19,16 @@ jobs:
       - name: Install dependencies
         run: pip install requests google-api-python-client google-auth-oauthlib
 
-      - name: Run uploader
+      - name: Run YouTube uploader
         env:
           YOUTUBE_CREDENTIALS: ${{ secrets.YOUTUBE_CREDENTIALS }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: python3 viral_downloader.py && python3 youtube_uploader.py
+
+      - name: Run Instagram uploader
+        env:
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python3 instagram_uploader.py
