@@ -1,5 +1,6 @@
 import os
 import requests
+import random
 
 folder = "/tmp/viral_videos" if os.environ.get("YOUTUBE_CREDENTIALS") else os.path.expanduser("~/viral_videos")
 os.makedirs(folder, exist_ok=True)
@@ -9,21 +10,32 @@ for f in os.listdir(folder):
     os.remove(os.path.join(folder, f))
 
 PEXELS_API_KEY = os.environ.get("PEXELS_API_KEY")
-
 headers = {"Authorization": PEXELS_API_KEY}
 
-queries = ["funny animals", "funny moments", "cute animals", "fails compilation", "funny dogs"]
+queries = ["funny animals", "funny moments", "cute animals", "funny dogs", "funny cats", "baby animals", "animal fails", "funny birds"]
+
+# Her çalışmada farklı sayfa ve sorgu seç
+random.shuffle(queries)
+page = random.randint(1, 10)
 
 videos = []
 for query in queries:
     response = requests.get(
         "https://api.pexels.com/videos/search",
         headers=headers,
-        params={"query": query, "per_page": 5, "min_duration": 15, "max_duration": 60}
+        params={
+            "query": query,
+            "per_page": 10,
+            "page": page,
+            "min_duration": 15,
+            "max_duration": 60
+        }
     )
     data = response.json()
     for video in data.get("videos", []):
         files = video.get("video_files", [])
+        if not files:
+            continue
         best = max(files, key=lambda x: x.get("width", 0))
         videos.append({
             "url": best["link"],
@@ -32,6 +44,7 @@ for query in queries:
     if len(videos) >= 5:
         break
 
+random.shuffle(videos)
 videos = videos[:5]
 print(f"{len(videos)} video bulundu")
 
