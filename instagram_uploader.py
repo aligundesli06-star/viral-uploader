@@ -19,10 +19,16 @@ def generate_caption():
                 "role": "user",
                 "content": "Türkçe komik ve eğlenceli bir Instagram caption yaz. Maksimum 150 karakter. Emoji ekle. Sadece caption yaz, başka bir şey ekleme."
             }
-        ]
+        ],
+        "max_tokens": 200
     }
     response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
-    return response.json()["choices"][0]["message"]["content"]
+    result = response.json()
+    print(f"Groq yanıtı: {result}")
+    if "choices" in result:
+        return result["choices"][0]["message"]["content"]
+    else:
+        return "Bugün de güldük, yarın da güleceğiz! 😂 #komik #eğlence"
 
 def get_pexels_image():
     import random
