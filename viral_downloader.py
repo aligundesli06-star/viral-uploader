@@ -5,7 +5,6 @@ import random
 folder = "/tmp/viral_videos" if os.environ.get("YOUTUBE_CREDENTIALS") else os.path.expanduser("~/viral_videos")
 os.makedirs(folder, exist_ok=True)
 
-# Klasörü temizle
 for f in os.listdir(folder):
     os.remove(os.path.join(folder, f))
 
@@ -14,7 +13,6 @@ headers = {"Authorization": PEXELS_API_KEY}
 
 queries = ["funny animals", "funny moments", "cute animals", "funny dogs", "funny cats", "baby animals", "animal fails", "funny birds"]
 
-# Her çalışmada farklı sayfa ve sorgu seç
 random.shuffle(queries)
 page = random.randint(1, 10)
 
@@ -36,11 +34,10 @@ for query in queries:
         files = video.get("video_files", [])
         if not files:
             continue
-        # Sadece sesli video dosyalarını filtrele
-files_with_audio = [f for f in files if f.get("file_type", "").startswith("video")]
-if not files_with_audio:
-    continue
-best = max(files_with_audio, key=lambda x: x.get("width", 0))
+        files_with_audio = [f for f in files if f.get("file_type", "").startswith("video")]
+        if not files_with_audio:
+            files_with_audio = files
+        best = max(files_with_audio, key=lambda x: x.get("width", 0))
         videos.append({
             "url": best["link"],
             "title": f"Funny moment {video['id']}"
