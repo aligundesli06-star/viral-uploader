@@ -36,7 +36,11 @@ for query in queries:
         files = video.get("video_files", [])
         if not files:
             continue
-        best = max(files, key=lambda x: x.get("width", 0))
+        # Sadece sesli video dosyalarını filtrele
+files_with_audio = [f for f in files if f.get("file_type", "").startswith("video")]
+if not files_with_audio:
+    continue
+best = max(files_with_audio, key=lambda x: x.get("width", 0))
         videos.append({
             "url": best["link"],
             "title": f"Funny moment {video['id']}"
